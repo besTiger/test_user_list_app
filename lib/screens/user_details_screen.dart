@@ -26,6 +26,7 @@ class UserDetailsScreen extends StatelessWidget {
           'User Details',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        backgroundColor: Colors.deepPurple[50],
       ),
       body: Obx(
         () => _user.value != null
