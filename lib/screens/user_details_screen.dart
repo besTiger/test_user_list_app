@@ -22,27 +22,55 @@ class UserDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Details'),
+        title: const Text(
+          'User Details',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Obx(
         () => _user.value != null
             ? Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      backgroundImage: NetworkImage(_user.value!.avatar),
-                      radius: 50.0,
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(_user.value!.avatar),
+                        radius: 60.0,
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    Text('ID: ${_user.value!.id}'),
-                    const SizedBox(height: 10),
-                    Text(
-                        'Name: ${_user.value!.firstName} ${_user.value!.lastName}'),
-                    const SizedBox(height: 10),
-                    Text('Email: ${_user.value!.email}'),
-                    // Add other user details here
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ID: ${_user.value!.id}',
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Name: ${_user.value!.firstName} ${_user.value!.lastName}',
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Email: ${_user.value!.email}',
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          // Add other user details here
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               )
