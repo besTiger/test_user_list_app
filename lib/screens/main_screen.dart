@@ -1,49 +1,50 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test_user_list_app/model/user_model.dart';
 import 'package:test_user_list_app/screens/user_details_screen.dart';
 import '../services/api_provider.dart';
 
-class MainScreen extends GetxController {
+class MainScreenController extends GetxController {
   final ApiProvider apiProvider = ApiProvider();
   final RxList<User> users = <User>[].obs;
+  bool isOffline = false;
 
   @override
   void onInit() {
     super.onInit();
-    loadUsers(); // Use the public method to load users on initialization
+    loadUsers();
   }
 
-  Future<void> loadUsers() async {
+  Future<void> loadUsers({int page = 1}) async {
     try {
-      final List<User> userList = [];
-      const int perPage = 12;
-      for (int page = 1; page <= 2; page++) {
-        final usersResponse = await apiProvider.getUsers(page, perPage);
-        userList.addAll(usersResponse);
-      }
-      users.assignAll(userList);
+      isOffline = false;
+      final usersResponse = await apiProvider.getUsers(page, perPage: 12); // Update perPage value here
+      users.assignAll(usersResponse);
     } catch (e) {
+      isOffline = true;
+      final localUsers = await getLocalUsers();
+      users.assignAll(localUsers);
       if (kDebugMode) {
         print('Error loading users: $e');
       }
     }
   }
 
-  Future<void> loadMoreUsers() async {
-    try {
-      final List<User> userList = [];
-      const int perPage = 12;
-      for (int page = 3; page <= 4; page++) {
-        final usersResponse = await apiProvider.getUsers(page, perPage);
-        userList.addAll(usersResponse);
-      }
-      users.addAll(userList);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error loading more users: $e');
-      }
+
+  Future<List<User>> getLocalUsers() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString('users');
+    if (jsonString != null) {
+      final jsonData = jsonDecode(jsonString);
+      final users = (jsonData['data'] as List)
+          .map((userJson) => User.fromJson(userJson))
+          .toList();
+      return users;
+    } else {
+      return [];
     }
   }
 
@@ -52,38 +53,11 @@ class MainScreen extends GetxController {
   }
 }
 
-class MainScreenWidget extends StatefulWidget {
-  const MainScreenWidget({Key? key}) : super(key: key);
-
-  @override
-  MainScreenWidgetState createState() => MainScreenWidgetState();
-}
-
-class MainScreenWidgetState extends State<MainScreenWidget> {
-  final MainScreen controller = Get.put(MainScreen());
+class MainScreenWidget extends StatelessWidget {
+  final MainScreenController controller = Get.put(MainScreenController());
   final ScrollController scrollController = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    scrollController.addListener(_loadMoreDataIfScrolledToBottom);
-  }
-
-  @override
-  void dispose() {
-    scrollController.dispose();
-    super.dispose();
-  }
-
-  void _loadMoreDataIfScrolledToBottom() {
-    if (scrollController.position.extentAfter < 200) {
-      controller.loadMoreUsers();
-    }
-  }
-
-  Future<void> _refreshData() async {
-    await controller.loadUsers(); // Call the loadUsers method to refresh data
-  }
+  MainScreenWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +75,8 @@ class MainScreenWidgetState extends State<MainScreenWidget> {
             return _buildEmptyListWidget();
           } else {
             return RefreshIndicator(
-              onRefresh: _refreshData,
+              triggerMode: RefreshIndicatorTriggerMode.anywhere,
+              onRefresh: () => controller.loadUsers(),
               child: ListView.separated(
                 controller: scrollController,
                 separatorBuilder: (context, index) => const Divider(

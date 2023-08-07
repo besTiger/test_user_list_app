@@ -1,6 +1,3 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
 class User {
   final int id;
   final String email;
@@ -16,6 +13,14 @@ class User {
     required this.avatar,
   });
 
+  // Optional constructor without named parameters
+  User.empty()
+      : id = 0,
+        email = '',
+        firstName = '',
+        lastName = '',
+        avatar = '';
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
@@ -25,18 +30,14 @@ class User {
       avatar: json['avatar'],
     );
   }
-}
 
-Future<List<User>> fetchUsers() async {
-  final response = await http.get('https://reqres.in/api/users?page=2' as Uri);
-  if (response.statusCode == 200) {
-    final jsonData = json.decode(response.body);
-    final List<User> users = [];
-    for (var userJson in jsonData['data']) {
-      users.add(User.fromJson(userJson));
-    }
-    return users;
-  } else {
-    throw Exception('Failed to load users');
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'first_name': firstName,
+      'last_name': lastName,
+      'email': email,
+      'avatar': avatar,
+    };
   }
 }
