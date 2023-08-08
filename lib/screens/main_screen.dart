@@ -44,7 +44,21 @@ class MainScreenWidget extends StatelessWidget {
                     if (controller.isLoadingMore) {
                       return const Center(child: CircularProgressIndicator());
                     } else {
-                      return const EndOfListWidget();
+                      // Check if data is unavailable and show the end message with delay
+                      if (controller.isOffline || controller.currentPage > 1) {
+                        return const EndOfListWidget();
+                      } else {
+                        return FutureBuilder(
+                          future: Future.delayed(const Duration(seconds: 1)),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else {
+                              return const EndOfListWidget();
+                            }
+                          },
+                        );
+                      }
                     }
                   }
                 },
