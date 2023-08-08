@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../model/user_model.dart';
-import '../services/api_provider.dart';
+import '../services/user_provider.dart';
 
 class UserDetailsScreen extends StatelessWidget {
   final int userId;
